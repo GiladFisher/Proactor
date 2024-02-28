@@ -12,6 +12,8 @@
 
 int sockfd;
 
+
+// Send messages to server
 void *send_message(void *arg) {
     char buffer[BUFFER_SIZE];
     int n;
@@ -30,7 +32,7 @@ void *send_message(void *arg) {
 
     pthread_exit(NULL);
 }
-
+// Receive messages from server
 void *receive_message(void *arg) {
     char buffer[BUFFER_SIZE];
     int n;
@@ -55,25 +57,26 @@ void *receive_message(void *arg) {
 int main(int argc, char *argv[]) {
     struct sockaddr_in serv_addr;
     pthread_t send_thread, receive_thread;
-
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s hostname port\n", argv[0]);
-        exit(1);
-    }
-
+    const char *server_ip = "127.0.0.1";
     // Create socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("ERROR opening socket");
         exit(1);
     }
+    // to reuse the address
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt failed");
+        exit(1);
+    }
 
     // Initialize server address
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(atoi(argv[2]));
-
-    if (inet_pton(AF_INET, argv[1], &serv_addr.sin_addr) <= 0) {
+    serv_addr.sin_port = htons(atoi("8080"));
+    
+    if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
         fprintf(stderr, "Invalid address: %s\n", argv[1]);
         exit(1);
     }
@@ -84,8 +87,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    // Create thread for sending messages
-    if (pthread_create(&send_thread, NULL, send_message, NULL) != 0) {
+    // Create thread that will listen for user input and send messages to server
+    if (pthread_create(&send_thread, NULL, send_message, NULL) != 0) { 
         perror("Thread creation failed");
         exit(1);
     }

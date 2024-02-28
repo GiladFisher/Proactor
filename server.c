@@ -54,13 +54,18 @@ int main(int argc, char *argv[])
     pthread_t thread_id;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
+    if (sockfd < 0){ 
         error("ERROR opening socket");
-
+    }
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt failed");
+        exit(1);
+    }
     bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = 8080;
+    portno = 8080; // set port number
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("127.0.0.1"); // set IP address to localhost
     serv_addr.sin_port = htons(portno);
 
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
@@ -70,6 +75,7 @@ int main(int argc, char *argv[])
 
     while (1) {
         clilen = sizeof(cli_addr);
+        printf("Waiting for client to connect...\n");
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if (newsockfd < 0) 
             error("ERROR on accept");
