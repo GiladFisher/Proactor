@@ -87,6 +87,12 @@ int main() {
         return 1;
     }
 
+    int optval = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+        perror("setsockopt failed");
+        exit(1);
+    }
+
     // Set socket to non-blocking mode
     if (set_nonblocking(sockfd) == -1) {
         close(sockfd);

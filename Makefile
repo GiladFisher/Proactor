@@ -1,6 +1,6 @@
 
 
-all: server client
+all: server client proact_server
 
 server: 
 	gcc -o server server.c -pthread
